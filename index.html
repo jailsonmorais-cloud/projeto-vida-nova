@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRVdigital - Sistema de Gestão</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'app-primary': '#374151',
+                        'app-primary-dark': '#1f2937',
+                        'app-secondary': '#6b7280',
+                        'app-accent': '#4f46e5',
+                        'app-accent-dark': '#3730a3'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .screen { display: none; }
+        .screen.active { display: block; }
+        .task-item { transition: all 0.2s ease; }
+        .task-item:hover { transform: translateY(-1px); }
+        .logo-text {
+            background: linear-gradient(135deg, #374151, #6b7280);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .tutorial-step {
+            display: none;
+        }
+        .tutorial-step.active {
+            display: block;
+        }
+        .bytegirls-logo {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 50;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+        .bytegirls-logo:hover {
+            opacity: 1;
+        }
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+        .file-upload-area:hover {
+            border-color: #6b7280;
+            background: #f3f4f6;
+        }
+        .file-upload-area.dragover {
+            border-color: #374151;
+            background: #e5e7eb;
+        }
+        .file-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Welcome Screen -->
+    <div id="screen-welcome" class="screen active">
+        <div class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-emerald-50 via-blue-50 to-teal-50">
+            <div class="bg-white rounded-2xl shadow-xl p-8 max-w-lg w-full border border-gray-200">
+                <!-- Logo -->
+                <div class="text-center mb-8">
+                    <div class="w-24 h-24 bg-gradient-to-br from-emerald-400 via-teal-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <!-- Árvore da vida -->
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2C8 2 5 5 5 9c0 2 1 4 3 5-1 1-2 3-2 5 0 3 2 5 5 5h2c3 0 5-2 5-5 0-2-1-4-2-5 2-1 3-3 3-5 0-4-3-7-7-7z"/>
+                            <!-- Folhas -->
+                            <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
+                            <circle cx="16" cy="8" r="1.5" fill="currentColor"/>
+                            <circle cx="12" cy="6" r="1.5" fill="currentColor"/>
+                            <circle cx="10" cy="10" r="1" fill="currentColor"/>
+                            <circle cx="14" cy="10" r="1" fill="currentColor"/>
+                            <!-- Raízes -->
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 19v3M10 20l-2 2M14 20l2 2"/>
+                        </svg>
+                    </div>
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 bg-clip-text text-transparent mb-3">Projeto Vida Nova</h1>
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Sistema de Gestão</h2>
+                    <p class="text-gray-600 leading-relaxed">Transforme sua vida com organização digital. Gerencie documentos, tarefas e informações para um novo começo.</p>
+                </div>
+
+                <!-- Login Form -->
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
+                        <input type="email" id="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-app-accent focus:border-transparent" placeholder="seu@email.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Senha</label>
+                        <input type="password" id="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-app-accent focus:border-transparent" placeholder="••••••••">
+                    </div>
+                    <div class="space-y-3">
+                        <button type="button" id="btn-login" class="w-full bg-app-primary hover:bg-app-primary-dark text-white font-semibold py-3 px-6 rounded-lg transition duration-200">
+                            Entrar
+                        </button>
+                        <button type="button" id="btn-register" class="w-full border-2 border-app-primary text-app-primary hover:bg-app-primary hover:text-white font-semibold py-3 px-6 rounded-lg transition duration-200">
+                            Cadastrar
+                        </button>
+                        <button type="button" id="btn-forgot-password" class="w-full text-sm text-gray-600 hover:text-app-accent transition duration-200">
+                            Esqueceu a senha?
+                        </button>
+                    </div>
+                    
+                    <!-- Debug Panel -->
+                    <div class="mt-6 pt-4 border-t border-gray-200">
+                        <p class="text-xs text-gray-500 mb-3 text-center">🔧 Ferramentas de Debug</p>
+                        <div class="flex space-x-2">
+                            <button type="button" onclick="showDebugInfo()" class="flex-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 py-2 px-3 rounded transition duration-200">
+                                Ver Usuários
+                            </button>
+                            <button type="button" onclick="clearAllData()" class="flex-1 text-xs bg-red-100 hover:bg-red-200 text-red-600 py-2 px-3 rounded transition duration-200">
+                                Limpar Dados
+                            </button>
+                        </div>
+                        <div class="mt-2">
+                            <button type="button" onclick="testRegister()" class="w-full text-xs bg-blue-100 hover:bg-blue-200 text-blue-600 py-2 px-3 rounded transition duration-200">
+                                🧪 Teste Rápido: Cadastrar teste@email.com
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tutorial Screen -->
+    <div id="screen-tutorial" class="screen">
+        <div class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-emerald-50 via-blue-50 to-teal-50">
+            <div class="bg-white rounded-2xl shadow-xl p-8 max-w-2xl w-full border border-gray-200">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 bg-clip-text text-transparent mb-4">Bem-vindo ao Projeto Vida Nova!</h2>
+                    <p id="welcome-message" class="text-lg text-gray-600 mb-6"></p>
+                </div>
+
+                <!-- Tutorial Step 1 -->
+                <div id="tutorial-step-1" class="tutorial-step active">
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Documentos Organizados</h3>
+                        <p class="text-gray-600 mb-6">Gerencie estatutos, atas de reunião, contratos e relatórios anuais de forma estruturada. Visualize, baixe e organize seus arquivos institucionais.</p>
+                    </div>
+                </div>
+
+                <!-- Tutorial Step 2 -->
+                <div id="tutorial-step-2" class="tutorial-step">
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Gestão de Tarefas</h3>
+                        <p class="text-gray-600 mb-6">Organize suas atividades por status: pendente, em execução e concluído. Atribua responsáveis e acompanhe o progresso de cada tarefa.</p>
+                    </div>
+                </div>
+
+                <!-- Tutorial Step 3 -->
+                <div id="tutorial-step-3" class="tutorial-step">
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Fichas e Eventos</h3>
+                        <p class="text-gray-600 mb-6">Cadastre informações de pessoas, empresas e projetos. Mantenha uma agenda organizada com seus compromissos e eventos importantes.</p>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="flex justify-between items-center mt-8">
+                    <div class="flex space-x-2">
+                        <div id="dot-1" class="w-3 h-3 bg-app-accent rounded-full"></div>
+                        <div id="dot-2" class="w-3 h-3 bg-gray-300 rounded-full"></div>
+                        <div id="dot-3" class="w-3 h-3 bg-gray-300 rounded-full"></div>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button onclick="skipTutorial()" class="text-gray-500 hover:text-gray-700 px-4 py-2 rounded-lg transition duration-200">
+                            Pular
+                        </button>
+                        <button id="tutorial-next" onclick="nextTutorialStep()" class="bg-app-primary hover:bg-app-primary-dark text-white px-6 py-2 rounded-lg transition duration-200">
+                            Próximo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Menu Screen -->
+    <div id="screen-menu" class="screen">
+        <div class="min-h-screen p-4 bg-gradient-to-br from-emerald-50 via-blue-50 to-teal-50">
+            <div class="max-w-6xl mx-auto">
+                <header class="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-gradient-to-br from-emerald-400 via-teal-500 to-blue-500 rounded-lg flex items-center justify-center mr-4 shadow-lg">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <!-- Árvore da vida -->
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2C8 2 5 5 5 9c0 2 1 4 3 5-1 1-2 3-2 5 0 3 2 5 5 5h2c3 0 5-2 5-5 0-2-1-4-2-5 2-1 3-3 3-5 0-4-3-7-7-7z"/>
+                                    <!-- Folhas -->
+                                    <circle cx="8" cy="8" r="1" fill="currentColor"/>
+                                    <circle cx="16" cy="8" r="1" fill="currentColor"/>
+                                    <circle cx="12" cy="6" r="1" fill="currentColor"/>
+                                    <!-- Raízes -->
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 19v2M10 20l-1 1M14 20l1 1"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h1 class="text-3xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 bg-clip-text text-transparent">Projeto Vida Nova</h1>
+                                <p class="text-gray-600 mt-1">Painel Principal</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <!-- ByteGirls Logo in Header -->
+                            <div class="flex items-center space-x-2 bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-2 rounded-full border border-purple-100">
+                                <div class="relative">
+                                    <svg class="w-8 h-8" viewBox="0 0 40 40" fill="none">
+                                        <!-- Outer circle with gradient -->
+                                        <circle cx="20" cy="20" r="18" fill="url(#bytegirls-gradient)" stroke="url(#bytegirls-border)" stroke-width="2"/>
+                                        <!-- Inner shield -->
+                                        <path d="M20 6L14 10v8c0 3.5 2.5 6.5 6 7 3.5-0.5 6-3.5 6-7v-8L20 6z" fill="white" opacity="0.9"/>
+                                        <!-- Code brackets -->
+                                        <path d="M16 16l-2 2 2 2M24 16l2 2-2 2" stroke="url(#bytegirls-gradient)" stroke-width="2" stroke-linecap="round"/>
+                                        <!-- Center dot -->
+                                        <circle cx="20" cy="20" r="1.5" fill="url(#bytegirls-gradient)"/>
+                                        <defs>
+                                            <linearGradient id="bytegirls-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" style="stop-color:#8b5cf6"/>
+                                                <stop offset="50%" style="stop-color:#a855f7"/>
+                                                <stop offset="100%" style="stop-color:#ec4899"/>
+                                            </linearGradient>
+                                            <linearGradient id="bytegirls-border" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" style="stop-color:#7c3aed"/>
+                                                <stop offset="100%" style="stop-color:#db2777"/>
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                </div>
+                                <div class="text-left">
+                                    <div class="text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">ByteGirls</div>
+                                    <div class="text-xs text-gray-500">Powered by</div>
+                                </div>
+                            </div>
+                            <button id="btn-logout" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                                Sair
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <button onclick="showScreen('screen-documents')" class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition duration-200 text-left group border border-gray-200">
+                        <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-100 transition duration-200">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Documentos</h3>
+                        <p class="text-gray-600">Arquivos institucionais</p>
+                    </button>
+
+                    <button onclick="showScreen('screen-tasks')" class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition duration-200 text-left group border border-gray-200">
+                        <div class="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-100 transition duration-200">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Tarefas</h3>
+                        <p class="text-gray-600">Organize suas atividades</p>
+                    </button>
+
+                    <button onclick="showScreen('screen-fichas')" class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition duration-200 text-left group border border-gray-200">
+                        <div class="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-purple-100 transition duration-200">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Fichas</h3>
+                        <p class="text-gray-600">Cadastros e informações</p>
+                    </button>
+
+                    <button onclick="showScreen('screen-events')" class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition duration-200 text-left group border border-gray-200">
+                        <div class="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-orange-100 transition duration-200">
+                            <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Eventos</h3>
+                        <p class="text-gray-600">Agenda e compromissos</p>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documents Screen -->
+    <div id="screen-documents" class="screen">
+        <div class="min-h-screen p-4 bg-gradient-to-br from-emerald-50 via-blue-50 to-teal-50">
+            <div class="max-w-6xl mx-auto">
+                <header class="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800">Arquivos Institucionais</h1>
+                            <div id="breadcrumbs" class="text-sm text-gray-600 mt-1">📁 Início</div>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button onclick="openAddDocumentModal()" class="bg-app-primary hover:bg-app-primary-dark text-white px-4 py-2 rounded-lg transition duration-200">
+                                Adicionar
+                            </button>
+                            <button onclick="showScreen('screen-menu')" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                                Voltar
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                    <div id="documents-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Viewer Modal -->
+    <div id="document-viewer-modal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="document-viewer-title" class="text-xl font-bold text-gray-800"></h3>
+                <div class="flex space-x-3">
+                    <button onclick="downloadCurrentDocument()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        📥 Download
+                    </button>
+                    <button onclick="closeModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+            <div id="document-content" class="prose max-w-none"></div>
+        </div>
+    </div>
+
+    <!-- Tasks Screen -->
+    <div id="screen-tasks" class="screen">
+        <div class="min-h-screen p-4 bg-gradient-to-br from-emerald-50 via-blue-50 to-teal-50">
+            <div class="max-w-6xl mx-auto">
+                <header class="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800">Tarefas</h1>
+                            <p class="text-gray-600 mt-1">Gerencie suas atividades</p>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button onclick="openTaskModal()" class="bg-app-primary hover:bg-app-primary-dark text-white px-4 py-2 rounded-lg transition duration-200">
+                                Nova Tarefa
+                            </button>
+                            <button onclick="showScreen('screen-menu')" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                                Voltar
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <div id="tasks-list" class="space-y-6"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fichas Screen -->
+    <div id="screen-fichas" class="screen">
+        <div class="min-h-screen p-4 bg-gradient-to-br from-emerald-50 via-blue-50 to-teal-50">
+            <div class="max-w-6xl mx-auto">
+                <header class="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800">Fichas</h1>
+                            <p class="text-gray-600 mt-1">Cadastros e informações detalhadas</p>
+                        </div>
+                        <button onclick="showScreen('screen-menu')" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                            Voltar
+                        </button>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Adicionar Ficha</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nome/Título</label>
+                                    <input type="text" id="ficha-name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-app-accent focus:border-transparent" placeholder="Nome da ficha">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+                                    <select id="ficha-category" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-app-accent focus:border-transparent">
+                                        <option value="pessoa">Pessoa</option>
+                                        <option value="empresa">Empresa</option>
+                                        <option value="projeto">Projeto</option>
+                                        <option value="evento">Evento</option>
+                                        <option value="outros">Outros</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
+                                    <input type="tel" id="ficha-phone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-app-accent focus:border-transparent" placeholder="(11) 99999-9999">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
+                                    <input type="email" id="ficha-email" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-app-accent focus:border-transparent" placeholder="email@exemplo.com">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Descrição/Observações</label>
+                                    <textarea id="ficha-desc" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-app-accent focus:border-transparent" placeholder="Informações adicionais"></textarea>
+                                </div>
+                                <button onclick="addFicha()" class="w-full bg-app-primary hover:bg-app-primary-dark text-white py-2 px-4 rounded-lg transition duration-200">
+                                    Adicionar Ficha
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold text-gray-800">Lista de Fichas</h3>
+                                <div class="flex space-x-2">
+                                    <select id="filter-category" onchange="renderFichas()" class="px-3 py-1 border border-gray-300 rounded-lg text-sm">
+                                        <option value="">Todas as categorias</option>
+                                        <option value="pessoa">Pessoa</option>
+                                        <option value="empresa">Empresa</option>
+                                        <option value="projeto">Projeto</option>
+                                        <option value="evento">Evento</option>
+                                        <option value="outros">Outros</option>
+                                    </select>
+                                    <input type="text" id="search-fichas" oninput="renderFichas()" placeholder="Buscar..." class="px-3 py-1 border border-gray-300 rounded-lg text-sm">
+                                </div>
+                            </div>
+                            <div id="fichas-list" class="space-y-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Events Screen -->
+    <div id="screen-events" class="screen">
+        <div class="min-h-screen p-4 bg-gradient-to-br from-emerald-50 via-blue-50 to-teal-50">
+            <div class="max-w-6xl mx-auto">
+                <header class="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800">Eventos</h1>
+                            <p class="text-gray-600 mt-1">Agenda e compromissos</p>
+                        </div>
+                        <button onclick="showScreen('screen-menu')" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                            Voltar
+                        </button>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Adicionar Evento</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Data</label>
+                                    <input type="date" id="event-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-app-accent focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                                    <textarea id="event-desc" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-app-accent focus:border-transparent" placeholder="Descrição do evento"></textarea>
+                                </div>
+                                <button onclick="addEvent()" class="w-full bg-app-primary hover:bg-app-primary-dark text-white py-2 px-4 rounded-lg transition duration-200">
+                                    Adicionar Evento
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Lista de Eventos</h3>
+                            <div id="events-list" class="space-y-3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div id="task-modal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
+            <h3 id="task-modal-title" class="text-xl font-bold text-gray-800 mb-4">Nova Tarefa</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                    <input type="text" id="task-input" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-app-accent focus:border-transparent" placeholder="Descrição da tarefa">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Responsável</label>
+                    <input type="text" id="task-assignee-input" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-app-accent focus:border-transparent" placeholder="Nome do responsável">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select id="task-status-select" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-app-accent focus:border-transparent">
+                        <option value="pendente">Pendente</option>
+                        <option value="em execucao">Em execução</option>
+                        <option value="concluido">Concluído</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-between mt-6">
+                <button id="btn-delete-task" onclick="deleteTask()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200" style="display: none;">
+                    Excluir
+                </button>
+                <div class="flex space-x-3 ml-auto">
+                    <button onclick="closeModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Cancelar
+                    </button>
+                    <button onclick="saveTask()" class="bg-app-primary hover:bg-app-primary-dark text-white px-4 py-2 rounded-lg transition duration-200">
+                        Salvar
+                    </button>
+                </div>
+            </div>
+            <input type="hidden" id="task-edit-index" value="-1">
+        </div>
+    </div>
+
+    <!-- Document Modal -->
+    <div id="document-modal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Adicionar Item</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nome</label>
+                    <input type="text" id="document-name-input" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-app-accent focus:border-transparent" placeholder="Nome do item">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="radio" name="document-type" value="folder" class="mr-2" checked>
+                            <span>📁 Pasta</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="document-type" value="file" class="mr-2">
+                            <span>📄 Arquivo</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="document-type" value="upload" class="mr-2">
+                            <span>📤 Upload de Arquivo</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- File Upload Area -->
+                <div id="file-upload-section" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Selecionar Arquivo</label>
+                    <div class="file-upload-area" id="file-drop-area">
+                        <input type="file" id="file-input" class="hidden" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif">
+                        <div class="text-center">
+                            <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            <p class="text-gray-600 mb-2">Arraste e solte ou <button type="button" onclick="document.getElementById('file-input').click()" class="text-app-accent hover:underline">clique para selecionar</button></p>
+                            <p class="text-xs text-gray-500">PDF, DOC, DOCX, TXT, JPG, PNG (máx. 10MB)</p>
+                        </div>
+                    </div>
+                    <div id="file-preview" class="hidden mt-4">
+                        <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div id="file-icon" class="flex-shrink-0"></div>
+                            <div class="flex-grow">
+                                <p id="file-name" class="font-medium text-gray-800"></p>
+                                <p id="file-size" class="text-sm text-gray-500"></p>
+                            </div>
+                            <button type="button" onclick="removeFile()" class="text-red-500 hover:text-red-700">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="image-preview" class="hidden mt-3 text-center">
+                            <img id="preview-image" class="file-preview mx-auto" alt="Preview">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button onclick="closeModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                    Cancelar
+                </button>
+                <button onclick="saveDocument()" class="bg-app-primary hover:bg-app-primary-dark text-white px-4 py-2 rounded-lg transition duration-200">
+                    Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ByteGirls Logo -->
+    <div class="bytegirls-logo">
+        <div class="flex items-center space-x-2 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full shadow-lg border border-purple-100">
+            <div class="relative">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                    <!-- Outer circle -->
+                    <circle cx="12" cy="12" r="10" fill="url(#corner-gradient)" stroke="url(#corner-border)" stroke-width="1"/>
+                    <!-- Inner shield -->
+                    <path d="M12 4L8 6.5v5c0 2.5 1.8 4.5 4 5 2.2-0.5 4-2.5 4-5v-5L12 4z" fill="white" opacity="0.9"/>
+                    <!-- Code symbol -->
+                    <path d="M10 10l-1.5 1.5L10 13M14 10l1.5 1.5L14 13" stroke="url(#corner-gradient)" stroke-width="1.5" stroke-linecap="round"/>
+                    <circle cx="12" cy="11.5" r="0.8" fill="url(#corner-gradient)"/>
+                    <defs>
+                        <linearGradient id="corner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#8b5cf6"/>
+                            <stop offset="50%" style="stop-color:#a855f7"/>
+                            <stop offset="100%" style="stop-color:#ec4899"/>
+                        </linearGradient>
+                        <linearGradient id="corner-border" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#7c3aed"/>
+                            <stop offset="100%" style="stop-color:#db2777"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <span class="text-xs font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">ByteGirls</span>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentPath = ['root'];
+        let currentEditingTask = -1;
+        let currentTutorialStep = 1;
+        let currentViewingDocument = null;
+        let selectedFile = null;
+
+        // Document templates with real content
+        const documentTemplates = {
+            'Estatuto Social.pdf': {
+                type: 'estatuto',
+                content: `
+                    <h2>ESTATUTO SOCIAL</h2>
+                    <h3>CAPÍTULO I - DA DENOMINAÇÃO, SEDE E FINS</h3>
+                    <p><strong>Art. 1º</strong> - A organização denomina-se PRVdigital, constituída por prazo indeterminado, com sede na cidade de São Paulo, Estado de São Paulo.</p>
+                    <p><strong>Art. 2º</strong> - A organização tem por finalidade:</p>
+                    <ul>
+                        <li>I - Promover o desenvolvimento tecnológico;</li>
+                        <li>II - Facilitar a gestão documental;</li>
+                        <li>III - Oferecer soluções digitais inovadoras;</li>
+                        <li>IV - Capacitar profissionais em tecnologia.</li>
+                    </ul>
+                    <h3>CAPÍTULO II - DOS ASSOCIADOS</h3>
+                    <p><strong>Art. 3º</strong> - São associados da organização pessoas físicas e jurídicas que contribuam para os objetivos sociais.</p>
+                    <p><strong>Art. 4º</strong> - Os direitos e deveres dos associados são definidos em regulamento específico.</p>
+                `
+            },
+            'Regimento Interno.docx': {
+                type: 'regimento',
+                content: `
+                    <h2>REGIMENTO INTERNO</h2>
+                    <h3>TÍTULO I - DAS DISPOSIÇÕES GERAIS</h3>
+                    <p><strong>Art. 1º</strong> - Este Regimento disciplina o funcionamento interno da PRVdigital.</p>
+                    <p><strong>Art. 2º</strong> - O horário de funcionamento é de segunda a sexta-feira, das 8h às 18h.</p>
+                    <h3>TÍTULO II - DA ORGANIZAÇÃO ADMINISTRATIVA</h3>
+                    <p><strong>Art. 3º</strong> - A estrutura organizacional compreende:</p>
+                    <ul>
+                        <li>I - Diretoria Executiva;</li>
+                        <li>II - Departamento de Tecnologia;</li>
+                        <li>III - Departamento Administrativo;</li>
+                        <li>IV - Departamento de Projetos.</li>
+                    </ul>
+                    <p><strong>Art. 4º</strong> - Cada departamento possui autonomia técnica dentro de suas competências.</p>
+                `
+            },
+            'Ata Janeiro 2024.pdf': {
+                type: 'ata',
+                content: `
+                    <h2>ATA DA REUNIÃO ORDINÁRIA</h2>
+                    <p><strong>Data:</strong> 15 de Janeiro de 2024</p>
+                    <p><strong>Horário:</strong> 14h00 às 16h30</p>
+                    <p><strong>Local:</strong> Sala de Reuniões - Sede PRVdigital</p>
+                    <p><strong>Participantes:</strong></p>
+                    <ul>
+                        <li>João Silva - Diretor Executivo</li>
+                        <li>Maria Santos - Coordenadora de Projetos</li>
+                        <li>Carlos Oliveira - Analista de Sistemas</li>
+                        <li>Ana Costa - Assistente Administrativa</li>
+                    </ul>
+                    <h3>PAUTA:</h3>
+                    <p><strong>1. Aprovação da ata anterior:</strong> Aprovada por unanimidade.</p>
+                    <p><strong>2. Relatório financeiro:</strong> Apresentado balanço do mês anterior com saldo positivo.</p>
+                    <p><strong>3. Novos projetos:</strong> Aprovado desenvolvimento do sistema PRVdigital v2.0.</p>
+                    <p><strong>4. Assuntos gerais:</strong> Definida data da próxima reunião para 15/02/2024.</p>
+                `
+            },
+            'Ata Fevereiro 2024.pdf': {
+                type: 'ata',
+                content: `
+                    <h2>ATA DA REUNIÃO ORDINÁRIA</h2>
+                    <p><strong>Data:</strong> 15 de Fevereiro de 2024</p>
+                    <p><strong>Horário:</strong> 14h00 às 17h00</p>
+                    <p><strong>Local:</strong> Sala de Reuniões - Sede PRVdigital</p>
+                    <p><strong>Participantes:</strong></p>
+                    <ul>
+                        <li>João Silva - Diretor Executivo</li>
+                        <li>Maria Santos - Coordenadora de Projetos</li>
+                        <li>Carlos Oliveira - Analista de Sistemas</li>
+                        <li>Ana Costa - Assistente Administrativa</li>
+                        <li>Pedro Almeida - Desenvolvedor</li>
+                    </ul>
+                    <h3>PAUTA:</h3>
+                    <p><strong>1. Aprovação da ata anterior:</strong> Aprovada com ressalvas.</p>
+                    <p><strong>2. Andamento do projeto PRVdigital v2.0:</strong> 60% concluído, dentro do prazo.</p>
+                    <p><strong>3. Contratações:</strong> Aprovada contratação de mais um desenvolvedor.</p>
+                    <p><strong>4. Treinamentos:</strong> Programado curso de capacitação para março.</p>
+                `
+            },
+            'Contrato Prestação Serviços.pdf': {
+                type: 'contrato',
+                content: `
+                    <h2>CONTRATO DE PRESTAÇÃO DE SERVIÇOS</h2>
+                    <p><strong>CONTRATANTE:</strong> Empresa XYZ Ltda.</p>
+                    <p><strong>CNPJ:</strong> 12.345.678/0001-90</p>
+                    <p><strong>CONTRATADA:</strong> PRVdigital</p>
+                    <p><strong>CNPJ:</strong> 98.765.432/0001-10</p>
+                    
+                    <h3>CLÁUSULA 1ª - DO OBJETO</h3>
+                    <p>O presente contrato tem por objeto a prestação de serviços de desenvolvimento de sistema de gestão documental.</p>
+                    
+                    <h3>CLÁUSULA 2ª - DO PRAZO</h3>
+                    <p>O prazo de execução dos serviços é de 6 (seis) meses, contados a partir da assinatura deste contrato.</p>
+                    
+                    <h3>CLÁUSULA 3ª - DO VALOR</h3>
+                    <p>O valor total dos serviços é de R$ 50.000,00 (cinquenta mil reais), pagos em 6 parcelas mensais.</p>
+                    
+                    <h3>CLÁUSULA 4ª - DAS OBRIGAÇÕES</h3>
+                    <p><strong>Da CONTRATADA:</strong></p>
+                    <ul>
+                        <li>Desenvolver o sistema conforme especificações;</li>
+                        <li>Fornecer suporte técnico por 12 meses;</li>
+                        <li>Realizar treinamento da equipe.</li>
+                    </ul>
+                `
+            },
+            'Relatório Anual 2023.pdf': {
+                type: 'relatorio',
+                content: `
+                    <h2>RELATÓRIO ANUAL DE ATIVIDADES - 2023</h2>
+                    
+                    <h3>1. RESUMO EXECUTIVO</h3>
+                    <p>O ano de 2023 foi marcado por significativo crescimento da PRVdigital, com expansão de 40% em nossa base de clientes e lançamento de 3 novos produtos.</p>
+                    
+                    <h3>2. INDICADORES FINANCEIROS</h3>
+                    <ul>
+                        <li>Receita Total: R$ 2.500.000,00</li>
+                        <li>Crescimento: 35% em relação a 2022</li>
+                        <li>Margem de Lucro: 18%</li>
+                        <li>Investimento em P&D: R$ 300.000,00</li>
+                    </ul>
+                    
+                    <h3>3. PROJETOS REALIZADOS</h3>
+                    <ul>
+                        <li>Sistema de Gestão Documental v3.0</li>
+                        <li>Plataforma de Assinatura Digital</li>
+                        <li>App Mobile para Consultas</li>
+                        <li>Portal do Cliente Renovado</li>
+                    </ul>
+                    
+                    <h3>4. RECURSOS HUMANOS</h3>
+                    <p>Equipe cresceu de 15 para 22 colaboradores, com foco em profissionais de tecnologia e atendimento ao cliente.</p>
+                    
+                    <h3>5. PERSPECTIVAS 2024</h3>
+                    <p>Planejamos expandir para 2 novos estados e lançar nossa plataforma de inteligência artificial para análise documental.</p>
+                `
+            }
+        };
+
+        // Utility functions
+        function getFromStorage(key) {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : getDefaultData(key);
+        }
+
+        function saveToStorage(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        // Debug functions
+        function showDebugInfo() {
+            const users = getFromStorage('users');
+            console.log('=== DEBUG INFO ===');
+            console.log('Usuários cadastrados:', users);
+            console.log('Total de usuários:', users.length);
+            console.log('LocalStorage keys:', Object.keys(localStorage));
+            
+            if (users.length > 0) {
+                alert(`🔍 DEBUG INFO:\n\n📊 Total de usuários: ${users.length}\n\n👥 Usuários cadastrados:\n${users.map(u => `• ${u.email}`).join('\n')}\n\n💡 Dica: Use F12 > Console para mais detalhes`);
+            } else {
+                alert('🔍 DEBUG INFO:\n\n📊 Nenhum usuário cadastrado ainda.\n\n💡 Cadastre um usuário primeiro!');
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('⚠️ ATENÇÃO!\n\nIsso vai apagar TODOS os dados salvos (usuários, documentos, tarefas, etc.).\n\nTem certeza?')) {
+                localStorage.clear();
+                alert('✅ Todos os dados foram apagados!\n\nA página será recarregada.');
+                location.reload();
+            }
+        }
+
+        function testRegister() {
+            // Preencher campos automaticamente
+            document.getElementById('email').value = 'teste@email.com';
+            document.getElementById('password').value = '123456';
+            
+            // Executar cadastro
+            const success = register();
+            
+            if (success) {
+                // Limpar campos após teste
+                setTimeout(() => {
+                    document.getElementById('email').value = 'teste@email.com';
+                    document.getElementById('password').value = '123456';
+                    alert('🧪 TESTE CONCLUÍDO!\n\n✅ Usuário teste@email.com cadastrado\n\n👉 Agora você pode fazer login com:\n📧 Email: teste@email.com\n🔑 Senha: 123456');
+                }, 100);
+            }
+        }
+
+        function getDefaultData(key) {
+            const defaults = {
+                users: [],
+                documents: {
+                    id: 'root',
+                    name: 'Root',
+                    type: 'folder',
+                    children: [
+                        {
+                            id: 'folder1',
+                            name: 'Estatuto',
+                            type: 'folder',
+                            children: [
+                                { id: 'file1', name: 'Estatuto Social.pdf', type: 'file' },
+                                { id: 'file2', name: 'Regimento Interno.docx', type: 'file' }
+                            ]
+                        },
+                        {
+                            id: 'folder2',
+                            name: 'Atas de Reunião',
+                            type: 'folder',
+                            children: [
+                                { id: 'file3', name: 'Ata Janeiro 2024.pdf', type: 'file' },
+                                { id: 'file4', name: 'Ata Fevereiro 2024.pdf', type: 'file' }
+                            ]
+                        },
+                        {
+                            id: 'folder3',
+                            name: 'Contratos',
+                            type: 'folder',
+                            children: [
+                                { id: 'file5', name: 'Contrato Prestação Serviços.pdf', type: 'file' }
+                            ]
+                        },
+                        {
+                            id: 'folder4',
+                            name: 'Relatórios Anuais',
+                            type: 'folder',
+                            children: [
+                                { id: 'file6', name: 'Relatório Anual 2023.pdf', type: 'file' }
+                            ]
+                        }
+                    ]
+                },
+                fichas: [],
+                events: [],
+                tasks: [
+                    { text: 'Revisar estatuto social', status: 'pendente', assignee: 'Ana Silva', timestamp: new Date().toISOString() },
+                    { text: 'Organizar atas de reunião', status: 'pendente', assignee: 'Carlos Santos', timestamp: new Date().toISOString() },
+                    { text: 'Atualizar contratos', status: 'em execucao', assignee: 'Maria Costa', timestamp: new Date().toISOString() },
+                    { text: 'Finalizar relatório anual', status: 'concluido', assignee: 'João Oliveira', timestamp: new Date().toISOString() }
+                ]
+            };
+            return defaults[key] || [];
+        }
+
+        // Tutorial functions
+        function nextTutorialStep() {
+            if (currentTutorialStep < 3) {
+                document.getElementById(`tutorial-step-${currentTutorialStep}`).classList.remove('active');
+                document.getElementById(`dot-${currentTutorialStep}`).classList.remove('bg-app-accent');
+                document.getElementById(`dot-${currentTutorialStep}`).classList.add('bg-gray-300');
+                
+                currentTutorialStep++;
+                
+                document.getElementById(`tutorial-step-${currentTutorialStep}`).classList.add('active');
+                document.getElementById(`dot-${currentTutorialStep}`).classList.remove('bg-gray-300');
+                document.getElementById(`dot-${currentTutorialStep}`).classList.add('bg-app-accent');
+                
+                if (currentTutorialStep === 3) {
+                    document.getElementById('tutorial-next').textContent = 'Começar';
+                }
+            } else {
+                showScreen('screen-menu');
+            }
+        }
+
+        function skipTutorial() {
+            showScreen('screen-menu');
+        }
+
+        // Screen management
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            // Render data when showing screens
+            if (screenId === 'screen-documents') renderDocuments();
+            if (screenId === 'screen-tasks') renderTasks();
+            if (screenId === 'screen-fichas') renderFichas();
+            if (screenId === 'screen-events') renderEvents();
+        }
+
+        // Modal management
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(modal => modal.classList.remove('show'));
+        }
+
+        // Authentication functions
+        function register() {
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+            
+            console.log('Tentativa de cadastro:', { email, password: password ? '***' : 'vazio' });
+            
+            if (!email || !password) {
+                alert('❌ Preencha todos os campos para se cadastrar.');
+                emailInput.focus();
+                return false;
+            }
+            
+            // Validação mais rigorosa do email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('❌ Digite um e-mail válido (exemplo: seu@email.com).');
+                emailInput.focus();
+                return false;
+            }
+            
+            if (password.length < 6) {
+                alert('❌ A senha deve ter pelo menos 6 caracteres.');
+                passwordInput.focus();
+                return false;
+            }
+            
+            try {
+                const users = getFromStorage('users');
+                console.log('Usuários existentes:', users);
+                
+                // Verificar se email já existe
+                const existingUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+                if (existingUser) {
+                    alert('❌ Este e-mail já está cadastrado!\n\nTente fazer login ou use outro e-mail.');
+                    emailInput.focus();
+                    return false;
+                }
+                
+                // Criar novo usuário
+                const newUser = { 
+                    email: email.toLowerCase(), 
+                    password, 
+                    createdAt: new Date().toISOString(),
+                    id: Date.now().toString()
+                };
+                
+                users.push(newUser);
+                saveToStorage('users', users);
+                
+                console.log('Usuário cadastrado com sucesso:', newUser);
+                
+                alert('✅ CADASTRO REALIZADO COM SUCESSO!\n\n🎉 Bem-vindo ao Projeto Vida Nova!\n\n👉 Agora você pode fazer login com suas credenciais.');
+                
+                // Limpar campos após cadastro bem-sucedido
+                emailInput.value = '';
+                passwordInput.value = '';
+                emailInput.focus();
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Erro no cadastro:', error);
+                alert('❌ Erro interno no sistema. Tente novamente.');
+                return false;
+            }
+        }
+
+        function login() {
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+            
+            console.log('Tentativa de login:', { email, password: password ? '***' : 'vazio' });
+            
+            if (!email || !password) {
+                alert('❌ Preencha e-mail e senha para entrar.');
+                if (!email) emailInput.focus();
+                else passwordInput.focus();
+                return false;
+            }
+            
+            // Validação do email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('❌ Digite um e-mail válido para entrar.');
+                emailInput.focus();
+                return false;
+            }
+            
+            try {
+                const users = getFromStorage('users');
+                console.log('Verificando login contra usuários:', users);
+                
+                // Buscar usuário (case insensitive)
+                const user = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+                
+                if (user) {
+                    // Login com credenciais válidas - usuário cadastrado
+                    console.log('Login bem-sucedido para usuário cadastrado:', user.email);
+                    localStorage.setItem('loggedInUser', user.email);
+                    localStorage.setItem('userType', 'registered');
+                    
+                    const userName = user.email.split('@')[0];
+                    document.getElementById('welcome-message').textContent = `Olá, ${userName}! Seja bem-vindo de volta ao Projeto Vida Nova. Vamos conhecer as funcionalidades do sistema.`;
+                    
+                    // Limpar campos
+                    emailInput.value = '';
+                    passwordInput.value = '';
+                    
+                    showScreen('screen-tutorial');
+                    return true;
+                    
+                } else {
+                    // Verificar se o email existe mas a senha está errada
+                    const emailExists = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+                    if (emailExists) {
+                        console.log('Email existe, mas senha incorreta');
+                        alert('❌ Senha incorreta!\n\nVerifique sua senha e tente novamente.');
+                        passwordInput.value = '';
+                        passwordInput.focus();
+                        return false;
+                    } else {
+                        // Para demonstração, permitir login com qualquer email não cadastrado
+                        console.log('Email não cadastrado, entrando em modo demo');
+                        alert('📝 E-mail não encontrado em nossa base.\n\n🎯 Entrando em modo demonstração para você testar o sistema!');
+                        
+                        localStorage.setItem('loggedInUser', email);
+                        localStorage.setItem('userType', 'demo');
+                        
+                        const userName = email.split('@')[0];
+                        document.getElementById('welcome-message').textContent = `Olá, ${userName}! Bem-vindo ao Projeto Vida Nova. Este é o modo demonstração - explore todas as funcionalidades!`;
+                        
+                        // Limpar campos
+                        emailInput.value = '';
+                        passwordInput.value = '';
+                        
+                        showScreen('screen-tutorial');
+                        return true;
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Erro no login:', error);
+                alert('❌ Erro interno no sistema. Tente novamente.');
+                return false;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('loggedInUser');
+            showScreen('screen-welcome');
+        }
+
+        function forgotPassword() {
+            alert('Funcionalidade de recuperação de senha será implementada em breve.');
+        }
+
+        // Documents functions
+        function getFolderContents(path) {
+            let current = getFromStorage('documents');
+            for (let i = 1; i < path.length; i++) {
+                current = current.children.find(item => item.id === path[i]);
+            }
+            return current;
+        }
+
+        function renderBreadcrumbs() {
+            const documents = getFromStorage('documents');
+            let breadcrumbHtml = '<a href="#" onclick="navigateToPath([\'root\'])" class="text-app-accent hover:underline">📁 Início</a>';
+            
+            let currentFolder = documents;
+            for (let i = 1; i < currentPath.length; i++) {
+                currentFolder = currentFolder.children.find(item => item.id === currentPath[i]);
+                const pathToHere = JSON.stringify(currentPath.slice(0, i + 1));
+                breadcrumbHtml += ` / <a href="#" onclick="navigateToPath(${pathToHere})" class="text-app-accent hover:underline">${currentFolder.name}</a>`;
+            }
+            
+            document.getElementById('breadcrumbs').innerHTML = breadcrumbHtml;
+        }
+
+        function navigateToPath(path) {
+            currentPath = path;
+            renderDocuments();
+        }
+
+        function renderDocuments() {
+            const currentFolder = getFolderContents(currentPath);
+            const documentsListEl = document.getElementById('documents-list');
+            documentsListEl.innerHTML = '';
+            renderBreadcrumbs();
+
+            if (currentFolder.children.length === 0) {
+                documentsListEl.innerHTML = '<p class="text-gray-500 text-center py-8">Esta pasta está vazia.</p>';
+                return;
+            }
+
+            currentFolder.children.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition duration-200 mb-3';
+                
+                const icon = item.type === 'folder' 
+                    ? `<svg class="w-6 h-6 text-app-accent mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>`
+                    : `<svg class="w-6 h-6 text-app-accent mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
+                
+                div.innerHTML = `
+                    <div onclick="${item.type === 'folder' ? `openFolder('${item.id}')` : `viewFile('${item.name}')`}" class="flex-grow flex items-center cursor-pointer">
+                        ${icon} <span class="font-medium">${item.name}</span>
+                    </div>
+                    <div class="flex space-x-2">
+                        ${item.type === 'file' ? `
+                            <button onclick="viewFile('${item.name}')" class="text-blue-600 hover:text-blue-800 p-1 rounded-full" title="Visualizar">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            </button>
+                            <button onclick="downloadFile('${item.name}')" class="text-green-600 hover:text-green-800 p-1 rounded-full" title="Download">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            </button>
+                            <button onclick="saveAsFile('${item.name}')" class="text-purple-600 hover:text-purple-800 p-1 rounded-full" title="Salvar Como">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                            </button>
+                        ` : ''}
+                        <button onclick="deleteDocument('${item.id}')" class="text-gray-400 hover:text-red-500 p-1 rounded-full">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                `;
+                documentsListEl.appendChild(div);
+            });
+        }
+
+        function openFolder(folderId) {
+            currentPath.push(folderId);
+            renderDocuments();
+        }
+
+        function viewFile(fileName) {
+            const template = documentTemplates[fileName];
+            if (template) {
+                currentViewingDocument = fileName;
+                document.getElementById('document-viewer-title').textContent = fileName;
+                document.getElementById('document-content').innerHTML = template.content;
+                openModal('document-viewer-modal');
+            } else {
+                alert('Conteúdo do documento não disponível para visualização.');
+            }
+        }
+
+        function downloadCurrentDocument() {
+            if (currentViewingDocument) {
+                const template = documentTemplates[currentViewingDocument];
+                if (template) {
+                    // Create a blob with the document content
+                    const content = `
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset="UTF-8">
+                            <title>${currentViewingDocument}</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+                                h2 { color: #374151; border-bottom: 2px solid #374151; padding-bottom: 10px; }
+                                h3 { color: #6b7280; margin-top: 30px; }
+                                ul { margin: 10px 0; padding-left: 30px; }
+                                p { margin: 10px 0; }
+                            </style>
+                        </head>
+                        <body>
+                            ${template.content}
+                        </body>
+                        </html>
+                    `;
+                    
+                    const blob = new Blob([content], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = currentViewingDocument.replace('.pdf', '.html').replace('.docx', '.html');
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    alert('Documento baixado com sucesso!');
+                } else {
+                    alert('Erro ao baixar o documento.');
+                }
+            }
+        }
+
+        function deleteDocument(itemId) {
+            if (confirm('Tem certeza que deseja excluir este item?')) {
+                let documents = getFromStorage('documents');
+                const findAndRemove = (folder, id) => {
+                    const index = folder.children.findIndex(item => item.id === id);
+                    if (index > -1) {
+                        folder.children.splice(index, 1);
+                        return true;
+                    }
+                    for (const child of folder.children) {
+                        if (child.type === 'folder' && findAndRemove(child, id)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+                findAndRemove(documents, itemId);
+                saveToStorage('documents', documents);
+                renderDocuments();
+            }
+        }
+
+        function openAddDocumentModal() {
+            openModal('document-modal');
+        }
+
+        function saveDocument() {
+            const name = document.getElementById('document-name-input').value.trim();
+            const type = document.querySelector('input[name="document-type"]:checked').value;
+            
+            if (!name) {
+                alert('O nome não pode estar vazio.');
+                return;
+            }
+
+            if (type === 'upload' && !selectedFile) {
+                alert('Selecione um arquivo para upload.');
+                return;
+            }
+
+            let documents = getFromStorage('documents');
+            const parentFolder = getFolderContents(currentPath);
+            
+            const newItem = {
+                id: `id_${new Date().getTime()}`,
+                name,
+                type: type === 'upload' ? 'file' : type,
+                children: type === 'folder' ? [] : undefined
+            };
+
+            // Se for upload, salvar dados do arquivo
+            if (type === 'upload' && selectedFile) {
+                newItem.fileData = {
+                    content: selectedFile.content,
+                    size: selectedFile.size,
+                    lastModified: selectedFile.lastModified,
+                    mimeType: selectedFile.type
+                };
+            }
+
+            parentFolder.children.push(newItem);
+            saveToStorage('documents', documents);
+            renderDocuments();
+            closeModal();
+            resetDocumentModal();
+        }
+
+        function resetDocumentModal() {
+            document.getElementById('document-name-input').value = '';
+            document.querySelector('input[name="document-type"][value="folder"]').checked = true;
+            document.getElementById('file-upload-section').classList.add('hidden');
+            document.getElementById('file-preview').classList.add('hidden');
+            selectedFile = null;
+        }
+
+        // File upload functions
+        function setupFileUpload() {
+            const fileInput = document.getElementById('file-input');
+            const dropArea = document.getElementById('file-drop-area');
+            
+            // Radio button change handler
+            document.querySelectorAll('input[name="document-type"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const uploadSection = document.getElementById('file-upload-section');
+                    if (this.value === 'upload') {
+                        uploadSection.classList.remove('hidden');
+                    } else {
+                        uploadSection.classList.add('hidden');
+                        selectedFile = null;
+                        document.getElementById('file-preview').classList.add('hidden');
+                    }
+                });
+            });
+
+            // File input change
+            fileInput.addEventListener('change', function(e) {
+                handleFileSelect(e.target.files[0]);
+            });
+
+            // Drag and drop
+            dropArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                dropArea.classList.add('dragover');
+            });
+
+            dropArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                dropArea.classList.remove('dragover');
+            });
+
+            dropArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                dropArea.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                handleFileSelect(file);
+            });
+        }
+
+        function handleFileSelect(file) {
+            if (!file) return;
+
+            // Validar tamanho (10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('Arquivo muito grande. Máximo 10MB.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedFile = {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    lastModified: file.lastModified,
+                    content: e.target.result
+                };
+
+                showFilePreview(file);
+                
+                // Auto-fill name if empty
+                const nameInput = document.getElementById('document-name-input');
+                if (!nameInput.value.trim()) {
+                    nameInput.value = file.name;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showFilePreview(file) {
+            const preview = document.getElementById('file-preview');
+            const fileName = document.getElementById('file-name');
+            const fileSize = document.getElementById('file-size');
+            const fileIcon = document.getElementById('file-icon');
+            const imagePreview = document.getElementById('image-preview');
+            const previewImage = document.getElementById('preview-image');
+
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+
+            // Icon based on file type
+            const isImage = file.type.startsWith('image/');
+            if (isImage) {
+                fileIcon.innerHTML = '🖼️';
+                imagePreview.classList.remove('hidden');
+                previewImage.src = URL.createObjectURL(file);
+            } else if (file.type.includes('pdf')) {
+                fileIcon.innerHTML = '📄';
+                imagePreview.classList.add('hidden');
+            } else if (file.type.includes('word') || file.name.endsWith('.docx')) {
+                fileIcon.innerHTML = '📝';
+                imagePreview.classList.add('hidden');
+            } else {
+                fileIcon.innerHTML = '📎';
+                imagePreview.classList.add('hidden');
+            }
+
+            preview.classList.remove('hidden');
+        }
+
+        function removeFile() {
+            selectedFile = null;
+            document.getElementById('file-preview').classList.add('hidden');
+            document.getElementById('file-input').value = '';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Download functions
+        function downloadFile(fileName) {
+            const template = documentTemplates[fileName];
+            if (template) {
+                downloadCurrentDocument(fileName);
+            } else {
+                // Check if it's an uploaded file
+                const documents = getFromStorage('documents');
+                const file = findFileInDocuments(documents, fileName);
+                if (file && file.fileData) {
+                    const link = document.createElement('a');
+                    link.href = file.fileData.content;
+                    link.download = fileName;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    alert('Download iniciado!');
+                } else {
+                    alert('Arquivo não encontrado para download.');
+                }
+            }
+        }
+
+        function saveAsFile(fileName) {
+            const newName = prompt('Digite o novo nome do arquivo:', fileName);
+            if (newName && newName.trim() !== fileName) {
+                downloadFile(fileName);
+                alert(`Arquivo será salvo como: ${newName.trim()}`);
+            }
+        }
+
+        function findFileInDocuments(folder, fileName) {
+            for (const item of folder.children || []) {
+                if (item.name === fileName && item.type === 'file') {
+                    return item;
+                }
+                if (item.type === 'folder') {
+                    const found = findFileInDocuments(item, fileName);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        // Tasks functions
+        function renderTasks() {
+            const tasks = getFromStorage('tasks');
+            const tasksList = document.getElementById('tasks-list');
+            tasksList.innerHTML = '';
+
+            const statusConfig = {
+                'pendente': { title: 'Pendente', color: 'bg-orange-400', headerColor: 'text-orange-600' },
+                'em execucao': { title: 'Em execução', color: 'bg-blue-500', headerColor: 'text-blue-600' },
+                'concluido': { title: 'Concluído', color: 'bg-green-500', headerColor: 'text-green-600' }
+            };
+
+            Object.keys(statusConfig).forEach(statusKey => {
+                const tasksForStatus = tasks.filter(t => t.status === statusKey);
+                if (tasksForStatus.length > 0) {
+                    const config = statusConfig[statusKey];
+                    const section = document.createElement('div');
+                    const taskItems = tasksForStatus.map(task => {
+                        const originalIndex = tasks.findIndex(t => t === task);
+                        return `
+                        <div onclick="editTask(${originalIndex})" class="task-item bg-white p-3 rounded-lg border border-gray-200 shadow-sm cursor-pointer hover:bg-gray-50 mb-2">
+                            <div class="flex items-start">
+                                <span class="block w-3 h-3 ${config.color} rounded-sm mr-4 mt-1.5"></span>
+                                <div class="flex-grow">
+                                    <p class="${statusKey === 'concluido' ? 'line-through text-gray-500' : ''}">${task.text}</p>
+                                    <div class="flex items-center text-xs text-gray-400 mt-1">
+                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                        <span>${task.assignee || 'N/A'}</span>
+                                        <span class="mx-2">•</span>
+                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        <span>${formatTimestamp(task.timestamp)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join('');
+
+                    section.innerHTML = `
+                        <h3 class="font-bold ${config.headerColor} mb-2">${config.title}</h3>
+                        <div class="task-list-group">${taskItems}</div>`;
+                    tasksList.appendChild(section);
+                }
+            });
+        }
+
+        function formatTimestamp(isoString) {
+            if (!isoString) return '';
+            const date = new Date(isoString);
+            const options = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+            return date.toLocaleString('pt-BR', options);
+        }
+
+        function openTaskModal(task = null, index = -1) {
+            const title = document.getElementById('task-modal-title');
+            const input = document.getElementById('task-input');
+            const assigneeInput = document.getElementById('task-assignee-input');
+            const select = document.getElementById('task-status-select');
+            const deleteBtn = document.getElementById('btn-delete-task');
+            const editIndexInput = document.getElementById('task-edit-index');
+
+            if (task) {
+                title.textContent = 'Editar Tarefa';
+                input.value = task.text;
+                assigneeInput.value = task.assignee || '';
+                select.value = task.status;
+                editIndexInput.value = index;
+                deleteBtn.style.display = 'block';
+                currentEditingTask = index;
+            } else {
+                title.textContent = 'Nova Tarefa';
+                input.value = '';
+                assigneeInput.value = '';
+                select.value = 'pendente';
+                editIndexInput.value = -1;
+                deleteBtn.style.display = 'none';
+                currentEditingTask = -1;
+            }
+            openModal('task-modal');
+        }
+
+        function editTask(index) {
+            const tasks = getFromStorage('tasks');
+            openTaskModal(tasks[index], index);
+        }
+
+        function saveTask() {
+            const text = document.getElementById('task-input').value.trim();
+            const assignee = document.getElementById('task-assignee-input').value.trim();
+            const status = document.getElementById('task-status-select').value;
+            const index = parseInt(document.getElementById('task-edit-index').value, 10);
+            
+            if (!text || !assignee) {
+                alert('Descrição e Responsável são obrigatórios.');
+                return;
+            }
+
+            let tasks = getFromStorage('tasks');
+            const timestamp = new Date().toISOString();
+
+            if (index > -1) {
+                tasks[index] = { text, status, assignee, timestamp };
+            } else {
+                tasks.push({ text, status, assignee, timestamp });
+            }
+            saveToStorage('tasks', tasks);
+            renderTasks();
+            closeModal();
+        }
+
+        function deleteTask() {
+            const index = parseInt(document.getElementById('task-edit-index').value, 10);
+            if (index > -1 && confirm('Tem certeza que deseja excluir esta tarefa?')) {
+                let tasks = getFromStorage('tasks');
+                tasks.splice(index, 1);
+                saveToStorage('tasks', tasks);
+                renderTasks();
+                closeModal();
+            }
+        }
+
+        // Fichas functions
+        function renderFichas() {
+            const fichas = getFromStorage('fichas');
+            const filterCategory = document.getElementById('filter-category').value;
+            const searchTerm = document.getElementById('search-fichas').value.toLowerCase();
+            const fichasList = document.getElementById('fichas-list');
+            
+            let filteredFichas = fichas;
+            if (filterCategory) {
+                filteredFichas = filteredFichas.filter(ficha => ficha.category === filterCategory);
+            }
+            if (searchTerm) {
+                filteredFichas = filteredFichas.filter(ficha => 
+                    ficha.name.toLowerCase().includes(searchTerm) ||
+                    ficha.desc.toLowerCase().includes(searchTerm) ||
+                    (ficha.email && ficha.email.toLowerCase().includes(searchTerm))
+                );
+            }
+
+            fichasList.innerHTML = '';
+            if (filteredFichas.length === 0) {
+                fichasList.innerHTML = '<p class="text-gray-500 text-center">Nenhuma ficha encontrada.</p>';
+                return;
+            }
+
+            filteredFichas.forEach((ficha, index) => {
+                const originalIndex = fichas.findIndex(f => f === ficha);
+                const categoryColors = {
+                    'pessoa': 'bg-blue-50 text-blue-700 border-blue-200',
+                    'empresa': 'bg-green-50 text-green-700 border-green-200',
+                    'projeto': 'bg-purple-50 text-purple-700 border-purple-200',
+                    'evento': 'bg-orange-50 text-orange-700 border-orange-200',
+                    'outros': 'bg-gray-50 text-gray-700 border-gray-200'
+                };
+                
+                const div = document.createElement('div');
+                div.className = 'bg-white p-4 rounded-lg border border-gray-200 hover:shadow-md transition duration-200';
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex-grow">
+                            <div class="flex items-center mb-2">
+                                <h3 class="font-bold text-lg text-app-primary mr-3">${ficha.name}</h3>
+                                <span class="px-2 py-1 text-xs rounded-full border ${categoryColors[ficha.category] || categoryColors.outros}">${ficha.category}</span>
+                            </div>
+                            ${ficha.phone ? `<p class="text-sm text-gray-600 mb-1">📞 ${ficha.phone}</p>` : ''}
+                            ${ficha.email ? `<p class="text-sm text-gray-600 mb-1">📧 ${ficha.email}</p>` : ''}
+                            ${ficha.desc ? `<p class="text-gray-600 text-sm whitespace-pre-wrap mt-2">${ficha.desc}</p>` : ''}
+                        </div>
+                        <button onclick="deleteFicha(${originalIndex})" class="text-gray-400 hover:text-red-500 p-1 rounded-full flex-shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>`;
+                fichasList.appendChild(div);
+            });
+        }
+
+        function addFicha() {
+            const nameInput = document.getElementById('ficha-name');
+            const categoryInput = document.getElementById('ficha-category');
+            const phoneInput = document.getElementById('ficha-phone');
+            const emailInput = document.getElementById('ficha-email');
+            const descInput = document.getElementById('ficha-desc');
+            
+            if (nameInput.value.trim()) {
+                const fichas = getFromStorage('fichas');
+                fichas.push({ 
+                    name: nameInput.value.trim(), 
+                    category: categoryInput.value,
+                    phone: phoneInput.value.trim(),
+                    email: emailInput.value.trim(),
+                    desc: descInput.value.trim(),
+                    createdAt: new Date().toISOString()
+                });
+                saveToStorage('fichas', fichas);
+                nameInput.value = ''; 
+                phoneInput.value = '';
+                emailInput.value = '';
+                descInput.value = '';
+                renderFichas();
+            } else {
+                alert('Nome é obrigatório.');
+            }
+        }
+
+        function deleteFicha(index) {
+            if (confirm('Tem certeza que deseja excluir esta ficha?')) {
+                let fichas = getFromStorage('fichas');
+                fichas.splice(index, 1);
+                saveToStorage('fichas', fichas);
+                renderFichas();
+            }
+        }
+
+        // Events functions
+        function renderEvents() {
+            const events = getFromStorage('events');
+            const eventsList = document.getElementById('events-list');
+            eventsList.innerHTML = '';
+            
+            if (events.length === 0) {
+                eventsList.innerHTML = '<p class="text-gray-500 text-center">Nenhum evento adicionado.</p>';
+                return;
+            }
+            
+            events.forEach((event, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-200 mb-3';
+                div.innerHTML = `
+                    <div>
+                        <span class="font-semibold text-app-primary">${new Date(event.date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                        <p class="text-sm text-gray-600">${event.desc}</p>
+                    </div>
+                    <button onclick="deleteEvent(${index})" class="text-gray-400 hover:text-red-500 p-1 rounded-full">
+                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>`;
+                eventsList.appendChild(div);
+            });
+        }
+
+        function addEvent() {
+            const dateInput = document.getElementById('event-date');
+            const descInput = document.getElementById('event-desc');
+            
+            if (dateInput.value && descInput.value.trim()) {
+                const events = getFromStorage('events');
+                events.push({ date: dateInput.value, desc: descInput.value.trim() });
+                saveToStorage('events', events);
+                dateInput.value = ''; 
+                descInput.value = '';
+                renderEvents();
+            } else {
+                alert('Data e descrição são obrigatórios.');
+            }
+        }
+
+        function deleteEvent(index) {
+            if (confirm('Tem certeza que deseja excluir este evento?')) {
+                let events = getFromStorage('events');
+                events.splice(index, 1);
+                saveToStorage('events', events);
+                renderEvents();
+            }
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set up event listeners
+            document.getElementById('btn-register').addEventListener('click', register);
+            document.getElementById('btn-login').addEventListener('click', login);
+            document.getElementById('btn-logout').addEventListener('click', logout);
+            document.getElementById('btn-forgot-password').addEventListener('click', forgotPassword);
+
+            // Setup file upload functionality
+            setupFileUpload();
+
+            // Check if user is logged in
+            if (localStorage.getItem('loggedInUser')) {
+                showScreen('screen-menu');
+            } else {
+                showScreen('screen-welcome');
+            }
+
+            // Initialize default data if needed
+            if (!localStorage.getItem('tasks')) {
+                saveToStorage('tasks', getDefaultData('tasks'));
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97645b1ed35af62a',t:'MTc1NjM4OTg0Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
